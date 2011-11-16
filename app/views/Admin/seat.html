@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+        
+        <SCRIPT type="text/javascript">
+        function loadIframePage (pane, $Pane) {
+			if (!$Pane) $Pane = $('.ui-layout-'+ pane);
+			var $Iframe = $Pane.attr('tagName')=='IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+			if (!$Iframe.length) return; // no iframe
+			var src  = $Iframe.attr('src'),	page = $Iframe.attr('longdesc');
+			if (page && src != page) $Iframe.attr('src',page);
+		}
+	
+        $(document).ready(function () {		
+			$('body').layout({ 					
+				west__size:			200
+			});
+			loadIframePage("center");			
+			$("#accordion").accordion({ 
+				header: "h3", fillSpace:true, autoHeight: true
+			});
+			
+			/*$(window).resize(function(){
+			  	$("#accordion").accordion("resize");
+			});	*/		
+			
+			$("button:first").button({
+            icons: {
+                primary: "ui-icon-search"
+            }
+            }).next().button({
+            icons: {
+                primary: "ui-icon-refresh"
+            }
+            });		
+		})
+        </SCRIPT>
+        
+        <style type="text/css">		
+        	body{
+        		padding:0;margin:0;
+        	}
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:0;
+				padding:0;
+			}				
+			.ui-layout-west{
+				font-size:12px;
+			}					
+			#accordion div{
+				padding:0px;
+			}
+			#accordion div div{
+				padding:5px;			
+			}
+			#accordion button{
+				margin-right:5px;	
+				padding-right:6px;			
+			}
+		</style>
+    </head>
+    <body>
+    	<DIV class="ui-layout-west">
+    		<div id="accordion">	
+				<div>
+					<h3><a href="#">服务查询</a></h3>
+					<div id="info">
+						<div>
+							<select size="1" id="" style="width:178px"><option value="">--------请选择服务类型--------</option></select>
+						</div>
+						<div class="ui-widget">	
+							<div class="ui-widget-header ui-corner-top">搜索条件</div>					
+							<div class="ui-widget-content ui-corner-bottom">					
+								无搜索条件
+							</div>
+						</div>
+						<div><button class="ui-button">查&nbsp;&nbsp;询</button><button class="ui-button">重&nbsp;&nbsp;置</button></div>
+					</div>		
+				</div>								
+				<div>
+					<h3><a href="#">需求传达</a></h3>
+					<div id="requirement">
+						<select size="1" id=""><option value="">--指定地区--</option></select>
+						<select size="1" id=""><option value="">--指定行业--</option></select>
+						公司名称: <input type="text" id="" />
+						<div><button class="ui-button">查询</button><button class="ui-button">结束服务</button></div>
+					</div>		
+				</div>				
+			</div>
+    	</DIV>
+    	<iframe class="ui-layout-center" src="about:blank" longdesc="http://www.google.com.hk" frameborder="0" scrolling="auto"></iframe>
+    </body>
+</html>

@@ -1,0 +1,52 @@
+account.PermissionCategory(pc1):
+       name:                 所有功能
+       
+account.Permission(p1):
+        name:                个人服务
+        flag:                   ALL_PERSON 
+        express:             /admin/*
+        category:            pc1
+            
+account.Permission(p2):
+        name:                企业服务
+        flag:                   ALL_ENTERPRISE 
+        express:             /admin/*
+        category:            pc1
+        
+account.Permission(p3):
+        name:                系统管理
+        flag:                   ALL_ADMIN 
+        express:             /admin/*
+        category:            pc1
+      
+account.Role(r1):
+        name:                管理员   
+        flag:                   ADMIN 
+        permissions:  
+                                 - p1
+                                 - p2
+                                 - p3
+                                 
+account.Role(r2):
+        name:                审核员   
+        flag:                   ADMIN 
+        permissions:  
+                                 - p1
+                                 - p2
+                                 - p3                    
+
+account.Role(r3):
+        name:                坐席员   
+        flag:                   ADMIN 
+        permissions:  
+                                 - p1
+                                 - p2
+                                 - p3
+                                                          
+account.User(u1):
+        userName:         chenjin
+        fullName:           陈锦
+        password:          123456
+        telNum:              15801296134
+        email:                 jeekchen@qq.com    
+        role:                   r1

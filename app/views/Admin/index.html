@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>BDA服务推送平台</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+     
+     <!--   
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+     -->   
+        <script src="@{'/public/javascripts/jquery-1.5.2.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery-ui.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout-latest.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizeTabLayout.min-1.1.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+     	 <script src="@{'/public/javascripts/jquery.dynamicFields.js'}" type="text/javascript" charset="utf-8"></script>
+       <script src="@{'/public/javascripts/jquery.form.js'}" type="text/javascript" charset="utf-8"></script>
+         
+        <SCRIPT type="text/javascript">
+        function loadIframePage (pane, $Pane) {
+			if (!$Pane) $Pane = $('.tab-layout-'+ pane);
+			var $Iframe = $Pane.attr('tagName')=='IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+			if (!$Iframe.length) return; // no iframe
+			var src  = $Iframe.attr('src'),	page = $Iframe.attr('longdesc');
+			if (page && src != page) $Iframe.attr('src',page);
+		}
+		
+		var pageLayoutOptions = {			
+			name:					'pageLayout', // only for debugging
+			resizeWithWindowDelay:	250,        	// delay calling resizeAll when window is *still* resizing
+			resizable:				false,
+			slidable:				false,
+			closable:				false,
+			south__size:			25,
+			south__paneSelector:	".ui-layout-south",
+			center__paneSelector:	".ui-layout-center",
+			south__spacing_open:	0
+		}
+		
+		var tabsContainerLayoutOptions = {
+			name:					'tabsContainerLayout', // only for debugging
+			resizable:				false,
+			slidable:				false,
+			closable:				false,
+			north__paneSelector:	"#header",
+			center__paneSelector:	"#tabpanels",
+			spacing_open:			0,
+			center__onresize:		$.layout.callbacks.resizeTabLayout // resize ALL visible layouts nested inside
+		}; 
+		
+		var tabLayoutOptions = {
+			name:					'tabPanelLayout', // only for debugging
+			resizeWithWindow:		false,	// required because layout is 'nested' inside tabpanels container
+		//	resizeWhileDragging:	true,	// slow in IE because of the nested layouts
+			resizerDragOpacity:		0.5,
+			north__resizable:		false,
+			south__resizable:		false,
+			north__closable:		false,
+			south__closable:		false,
+			west__minSize:			200,
+			center__minWidth:		600,
+			spacing_open:			10,
+			spacing_closed:			10,
+			west__paneSelector:		".tab-layout-west",
+			center__paneSelector:	".tab-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-triangle-1-w"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-triangle-1-e"></div>',
+			triggerEventsOnLoad:	true, // so center__onresize is triggered when layout inits
+			west__onresize:			$.layout.callbacks.resizePaneAccordions, // ditto for west-pane		
+			//	after the layout loads, init sidebar-layouts...
+			onload: function ( layout ) {
+				//layout.panes.west.layout( sidebarLayoutOptions );
+			}		
+		};
+	
+	    $(document).ready(function () {			
+	    	var pageLayout = $("body").layout( pageLayoutOptions ); 
+
+			// first init the tabs inside the center-pane
+			// then init the layout that wraps them
+			pageLayout.panes.center
+				.tabs({
+					selected:2,
+					cache: true,
+					collapsible:false,
+					// using callback addon
+					show: $.layout.callbacks.resizeTabLayout
+				})
+				// create the layout to wrap the tab buttons (north) and panels (center)
+				.layout( tabsContainerLayoutOptions );
+			
+			
+			// init ALL the tab-layouts - all use the same options
+			$(".tab-panel").each(function(){
+				$(this).layout( tabLayoutOptions );
+			});
+			
+			// init ALL accordions (all have .accordion class assigned)
+			$(".accordion").accordion({ header: "h3", fillSpace:true, autoHeight: true });
+			
+			$('.tab-layout-center').each(function(){
+				loadIframePage("center", $(this));
+			});						
+			
+			$("button").each( function(){
+				var button = $(this);
+				var icon = button.attr("icon");
+　　　			button.button({
+					icons: {primary: icon}
+				});
+			});
+			
+			$("#selServiceModel").change( function() {
+				var url = "@{Admin.getQueryForm}?modelId="+$(this).val();
+				//console.info(url);
+				$.getJSON(url, function(form){
+					$("#dynamicFields").dynamicFields(form.fields);
+				});
+			});
+			
+			$("#callinDialog").dialog({modal:true,resizable:false,autoOpen:false});
+			$( "#callinUserName" ).autocomplete({
+				minLength: 0,
+				source: "@{Admin.getUserDatas}",
+				search: function(event, ui) { 					
+					$( "#callinId" ).val( "");
+					$( "#callinEmail" ).val( "" );
+					$( "#callinFullName" ).val( "" );
+					$( "#callinTelNum" ).val( "" );
+					$( "#callinTip" ).html( "*新用户，请填写完整资料");
+					return true;					
+				},
+				select: function( event, ui ) {					
+					$( "#callinId" ).val( ui.item.id );
+					$( "#callinUserName" ).val( ui.item.userName );
+					$( "#callinEmail" ).val( ui.item.email );
+					$( "#callinFullName" ).val( ui.item.fullName );
+					$( "#callinTelNum" ).val( ui.item.telNum );
+					$( "#callinTip" ).html( "*该用户已经注册");					
+					return false;
+				}
+			})
+			.data( "autocomplete" )._renderItem = function( ul, item ) {
+				return $( "<li></li>" )
+					.data( "item.autocomplete", item )
+					.append( "<a>" + item.userName + "(" + item.fullName + ")</a>" )
+				.appendTo( ul );
+			};
+			
+			$('#userCallinForm').ajaxForm({ 
+				 dataType:  'json', 
+			        success:   userCallinResponse    
+			}); 
+		})
+		
+		function userCallinResponse(data){
+			if (data._id){
+				$("#callinId").val(data._id);
+				$("#callinUserInfo").text("当前呼入用户："+data.fullName);
+				$("#callinBtn").text("结束服务");
+				$("#callinDialog").dialog( "close" );
+				
+				$( "#validUserName" ).text("");
+				$( "#validEmail" ).text("");
+				$( "#validFullName" ).text("");
+				$( "#validTelNum" ).text("");
+			}else{
+				if (data["user.userName"])
+					$( "#validUserName" ).text(data["user.userName"][0].message );
+				if (data["user.email"])	
+					$( "#validEmail" ).text( data["user.email"][0].message );
+				if (data["user.fullName"])		
+					$( "#validFullName" ).text( data["user.fullName"][0].message );
+				if (data["user.telNum"])		
+					$( "#validTelNum" ).text( data["user.telNum"][0].message );
+			}
+		}
+	
+		function toggleCallinDialog(){
+			var dialog = $("#callinDialog");
+					
+			if ($("#callinId").val()){
+				$("#callinId").val("");
+				$("#callinUserInfo").text("当前没有呼入用户");
+				$("#callinBtn").text("用户呼入");
+				dialog.dialog( "close" );
+			}else{
+				dialog.dialog( "open" );
+			}
+		}
+	    </SCRIPT>
+        
+        <style type="text/css">		
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:0;
+				padding:0;
+			}	
+			
+			.ui-layout-south{
+				padding:5px;
+				font-size:12px;
+			}		
+			
+			#tabs{padding:0;height:100%;}
+			
+			.ui-tabs .ui-tabs-nav li{
+				float:right;
+				margin-top:13px;
+			}
+			
+			#tabpanels .tab-panel { /* tab-layout containers */
+				width:		100%;
+				height:		100%;
+				padding:	0;
+				overflow:	hidden;
+			}
+			
+			.accordion{
+				height:100%;				
+			}
+			
+			.accordion .ui-accordion-content {
+				padding:10px;
+				font-size:12px;
+			}
+			
+			.accordion button{
+				margin-right:5px;	
+				padding-right:6px;			
+			}
+			
+			.content-space{
+				margin-bottom:10px;
+			}
+			
+			.ui-autocomplete-loading { background: white url('/public/images/ui-anim_basic_16x16.gif') right center no-repeat; }
+			/*.ui-autocomplete-input{ background: white url('/public/images/ui-anim_basic_16x16.gif') right center no-repeat; }
+			*/
+		</style>
+    </head>
+    <body id="crud">    	
+    		<div id="callinDialog" title="当前呼入用户">
+			<form method="post" action="@{Admin.userCallin}" id="userCallinForm">
+				<div class="content-space">
+					<input type="hidden" value="" id="callinId"  name="user._id"/>
+					<label>用户名:</label><input type="text" value="" id="callinUserName" name="user.userName"/>
+					<br/><span id="validUserName" class="ui-state-error-text"></span>
+				</div>
+				<div class="content-space">
+					<label>名字:</label><input type="text" value=""  id="callinFullName"  name="user.fullName"/>
+					<br/><span id="validFullName" class="ui-state-error-text"></span>
+				</div>
+				<div class="content-space ui-helper-reset">
+					<label>邮箱:</label><input type="text" value=""  id="callinEmail"  name="user.email"/>
+					<br/><span id="validEmail" class="ui-state-error-text"></span>
+				</div>
+				<div class="content-space">
+					<label>电话:</label><input type="text" value=""  id="callinTelNum"  name="user.telNum"/>
+					<br/><span id="validTelNum" class="ui-state-error-text"></span>
+				</div>
+				<div class="content-space">
+					<label>&nbsp;</label><span  id="callinTip">*输入用户名查询</span>					
+				</div>
+				<div class="content-space"><label>&nbsp;</label><button icon="ui-icon-circle-check">确&nbsp;&nbsp;定</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+			</form>
+		</div>
+		<DIV class="ui-layout-center">			
+	        <div id="tabs">	 	 
+	        	 <div id="header">
+		    		<div style="float:left;white-space:nowrap; margin-top:10px">
+						<img src="/public/images/logo.png" width="80" height="30"/>
+					</div>
+					<div style="float:left;white-space:nowrap; margin-top:5px;padding:10px;font-size:24px;color:#2E6E9E">
+						<strong>&{'crud.title'}</strong>
+						<!--
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<select id="themeSwitch">
+							<option value="redmond"> 蓝色</option>
+					    	<option value="ui-lightness"> 橘红色</option>			        
+					    </select>	
+					    -->
+					    <span style="padding:5px 0 0 15px;font-size:12px;border:0" class="ui-state-default" id="callinUserInfo">		
+							当前还没有呼入用户	
+						</span>
+					    <span style="padding:5px 0 0 15px;font-size:12px;border:0" class="ui-state-default">		
+							[&nbsp;<a  onclick="toggleCallinDialog()" id="callinBtn">用户呼入</a>]	
+						</span>
+						
+						<span style="padding:5px 0 0 15px;font-size:12px;border:0" class="ui-state-default">		
+							[&nbsp;<a href="@{Secure.logout}" onclick="return confirm('您确定要退出吗？')">退出登录</a>]		
+						</span>
+					</div>
+					 <ul class="ui-state-default" sytle="height:50px" id="tabbuttons">		         
+				         <li><a href="#ui-tabs-sys">系统管理</a></li>
+				         <li><a href="#ui-tabs-info">信息采编</a></li> 
+				         <li><a href="#ui-tabs-seat">服务推送</a></li>  		          
+			     	 </ul>
+		    	</div>    	
+			    
+			     
+			     <div id="tabpanels">
+				     <div id="ui-tabs-seat" class="tab-panel">
+					     <DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">服务推送</a></h3>
+									<div id="info">
+										<form method="post" action="@{Admin.push}" target="service-center">
+										<div class="content-space">
+											<select size="1" style="width:178px" id="selServiceModel" name="serviceModelId">
+											<option value="">--------请选择服务类型--------</option>
+											#{list items:serviceModels, as:'serviceModel'}
+											<option value="${serviceModel._id}">${serviceModel.name}</option>
+											#{/list}
+											</select>
+										</div>
+										<div class="ui-widget content-space">	
+											<div class="ui-widget-header ui-corner-top">搜索条件</div>					
+											<div class="ui-widget-content ui-corner-bottom" id="dynamicFields" style="display:block;overflow:hidden">		
+												<div class="content-space">		
+												无搜索条件
+												</div>																					
+											</div>
+										</div>
+										<div class="content-space"><button icon="ui-icon-search">查&nbsp;&nbsp;询</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+										</form>
+									</div>		
+								</div>								
+								<div>
+									<h3><a href="#">需求传达</a></h3>
+									<div id="requirement">
+										<form method="post" action="@{Admin.requirement}" target="service-center">
+										<div class="content-space">
+											<select size="1" id="" style="width:178px" name="area">
+												<option value="">--指定地区--</option>
+												#{list items:areas, as:'area'}
+												<option value="${area._id}">${area.name}</option>
+												#{/list}
+											</select>
+										</div>
+										<div class="content-space">
+											<select size="1" id="" style="width:178px" name="trade">
+												<option value="">--指定行业--</option>
+												#{list items:trades, as:'trade'}
+												<option value="${trade._id}">${trade.name}</option>
+												#{/list}
+											</select>
+										</div>
+										<div class="content-space">供应商: <input type="text" id=""  style="width:173px" name="providerName"/></div>
+										<div class="content-space"><button  icon="ui-icon-search">查&nbsp;&nbsp;询</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+										</form>
+									</div>		
+								</div>				
+							</div>
+				    	</DIV>
+				    	<iframe id="service-center" name="service-center" class="tab-layout-center" src="about:blank" longdesc="@{Admin.push}" frameborder="0" scrolling="auto"></iframe>
+	    	
+				     </div>
+				     <div id="ui-tabs-info"  class="tab-panel">
+				     	<DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">信息采编</a></h3>
+									<div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">转达处理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">供应商管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">服务管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">服务审核</a></div>
+										<div class="content-space"><a href="/secure/forms" target="info-center">供应商审核</a></div>
+									</div>		
+								</div>		
+							</div>
+				    	</DIV>
+				    	<iframe id="info-center" name="info-center" class="tab-layout-center" src="about:blank" longdesc="about:blank" frameborder="0" scrolling="auto"></iframe>
+				     </div>
+				     <div id="ui-tabs-sys"  class="tab-panel">
+				     	<DIV class="tab-layout-west">
+				    		<div class="accordion">	
+								<div>
+									<h3><a href="#">系统管理</a></h3>
+									<div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">行业管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">字典管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">服务分类管理</a></div>
+										<div class="content-space"><a href="/secure/forms" target="sys-center">服务模型管理</a></div>
+										<div class="content-space"><a href="/secure/areas" target="sys-center">地区管理</a></div>
+										<div class="content-space"><a href="/secure/users" target="sys-center">用户管理</a></div>
+										<div class="content-space"><a href="/secure/roles" target="sys-center">角色管理</a></div>
+										<div class="content-space"><a href="/secure/permissioncategorys" target="sys-center">权限分类管理</a></div>
+										<div class="content-space"><a href="/secure/permissions" target="sys-center">权限管理</a></div>
+									</div>		
+								</div>		
+							</div>
+				    	</DIV>
+				    	<iframe id="sys-center" name="sys-center" class="tab-layout-center" src="about:blank" longdesc="/secure/forms" frameborder="0" scrolling="auto"></iframe>
+	    	
+				     </div>
+			     </div>
+			     		   
+			</div>   
+		</DIV>
+		<DIV class="ui-layout-south ui-state-default"><span style="float:left">当前登录:&nbsp;${session.username}&nbsp;&nbsp;${session.role}</span><span style="float:right">&copy;2011&nbsp;xxxx有限公司</span></DIV>
+		
+    </body>
+</html>

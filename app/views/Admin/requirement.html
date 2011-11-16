@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />    
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/ui.jqgrid.css'}">
+        
+       <!--   
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+     -->   
+        <script src="@{'/public/javascripts/jquery-1.5.2.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery-ui.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout-latest.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizeTabLayout.min-1.1.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+              
+        <script src="@{'/public/javascripts/grid.locale-cn.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.jqGrid.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.dynamicFields.js'}" type="text/javascript" charset="utf-8"></script>
+     	  <script src="@{'/public/javascripts/jquery.twoColumnGrid.js'}" type="text/javascript" charset="utf-8"></script>
+  	  <script src="@{'/public/javascripts/jquery.form.js'}" type="text/javascript" charset="utf-8"></script>
+         
+        <SCRIPT type="text/javascript">
+
+		var pageLayoutOptions = {			
+			name:					'pageLayout', // only for debugging
+			resizeWithWindowDelay:	250,        	// delay calling resizeAll when window is *still* resizing
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			south__size:			400,
+			south__paneSelector:	".ui-layout-south",
+			center__paneSelector:	".ui-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			south__spacing_open:	10
+		}
+		
+		var detailLayoutOptions = {
+			name:					'detailLayout', // only for debugging			
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			east__paneSelector:		".detail-layout-east",
+			center__paneSelector:	".detail-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			east__minSize:			300,
+			center__minWidth:		300,
+			spacing_open:			10
+		}; 
+				
+		function ajaxResponse(data) {
+			$( "#validSubject" ).text("" );
+			$( "#validContent" ).text( "" );	
+			
+			 if (data._id){
+				alert("您的需求已经提交！");
+			}else{
+				if (data.message){
+					alert("data.message");
+				}else{
+					if (data["requirement.subject"])
+						$( "#validSubject" ).text(data["requirement.subject"][0].message );
+					if (data["requirement.content"])	
+						$( "#validContent" ).text( data["requirement.content"][0].message );	
+				}			
+			}
+		}
+				
+	    $(document).ready(function () {
+	    	var pageLayout = $("body").layout( pageLayoutOptions ); 
+				
+			var detailLayout = pageLayout.panes.south				
+				.layout( detailLayoutOptions );
+			
+			detailLayout.panes.center.tabs({
+				collapsible:false,
+				show: $.layout.callbacks.resizeTabLayout
+			});
+			
+			detailLayout.panes.east.accordion({ 
+				header: "h3", fillSpace:true, autoHeight: true 
+			});
+			
+			//var grid = pageLayout.panes.center
+			$("#serviceGrid").jqGrid({ 
+				url:'@{Admin.queryProvider(trade, area, providerName)}', 
+				datatype: "json",
+				autowidth: true, 
+				autoheight: true, 
+				viewrecords: true,
+				sortname: "created",
+				sortorder: "desc",
+				forceFit : true,
+				rownumbers: true,
+				jsonReader: { repeatitems : false, userdata : 'rows' },
+				colNames:[
+					'名称',	'地区',	'行业',	'创建时间'
+				], 
+				colModel:[ 				
+					{name:'name',index:'name'}, 
+					{name:'area.name',index:'area'}, 
+					{name:'trade.name',index:'trade'}, 
+					{name:'created', index:'created', width:80}
+				],
+				rowNum:10, 
+				rowList:[10,20,50], 
+				pager: '#serviceGridPager',
+				onSelectRow: function(id){ 
+					var data = $("#serviceGrid").getGridParam('userData')[id - 1];
+		      				   
+		      		       var fields = [{label:'名称',name:'name'},{label:'联系人',name:'linkName'},
+			      		      {label:'职位',name:'linkTitle'},{label:'电话',name:'telNum'},
+			      		      {label:'传真',name:'fax'},
+			      			{label:'地区',name:'area'},{label:'行业',name:'trade'},      
+			      		      {label:'地址',name:'address'},
+			      		      {label:'网址',name:'url'},{label:'邮箱',name:'email'},
+			      			{label:'简介',name:'desc'}  
+			      		];
+			      		if ( typeof(data.trade) == "object" )
+			      			data.trade = data.trade.name;
+			      		if ( typeof(data.area) == "object" )		
+			      			data.area = data.area.name;				      			
+			      		 $("#providerDetail").twoColumnGrid(fields, data);  
+			      			      	
+			      		 $("#providerId").val(data.providerId); 	  	  			
+	   				}
+				});			
+			
+			var ajaxFormOptions = { 
+				 dataType:  'json', 
+			        success:   ajaxResponse    
+			}; 
+			    
+			$('#requireForm').ajaxForm(ajaxFormOptions); 
+							
+		})
+    </SCRIPT>
+        
+        <style type="text/css">		
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:15px;
+				padding:0px;
+			}	
+			
+			.ui-layout-south{
+				padding:5px;
+				font-size:12px;
+			}		
+			
+			#tabs{padding:0;height:100%;}
+			
+			.ui-tabs .ui-tabs-nav li{
+			}
+			
+			#tabpanels .tab-panel { /* tab-layout containers */
+				width:		100%;
+				height:		100%;
+				padding:	0;
+				overflow:	hidden;
+			}
+						
+			.content-space{
+				margin-bottom:10px;
+			}
+			
+			.ui-loading { padding-left:18px; background: white url('/public/images/ui-anim_basic_16x16.gif') left center no-repeat; }
+		</style>
+    </head>
+    <body>  
+    	
+    	<div  class="ui-layout-center">  	
+	    	<table id="serviceGrid"></table>
+	    	<div id="serviceGridPager"></div>
+		</div>
+		<!--
+		<table id="serviceGrid" class="ui-layout-center"></table>
+		-->
+		<DIV class="ui-layout-south">					
+	        <DIV class="detail-layout-center">
+	        	<ul class="ui-state-default" sytle="height:50px" id="tabbuttons">	
+			         <li><a href="#provider-tabs-detail">供应商信息</a></li>               
+		     	</ul>
+		     	<div id="tabpanels">
+				     <div id="provider-tabs-detail" class="tab-panel">
+				     		<table id="providerDetail" border="0"></table> 	
+					</div>				  
+				 </div>
+			</DIV>
+			<DIV class="detail-layout-east ui-widget accordion">		
+				<h3><a href="#">需求提交</a></h3>
+				<div>
+					<form method="post" id="requireForm" action="@{Admin.addRequirement()}">
+					<input type="hidden" name="providerId" id="providerId" value=""/> 
+					<div class="content-space">
+						<label>主题：</label>
+						<br/><input type="text" name="requirement.subject" value=""  style="width:248px"></textarea>
+						<br/><span id="validSubject" class="ui-state-error-text"></span>
+					</div>			
+					<div class="content-space">
+						<label>内容：</label>
+						<br/><textarea name="requirement.content" rows="16" cols="30"></textarea>
+						<br/><span id="validContent" class="ui-state-error-text"></span>
+					</div>					
+					<div class="content-space">
+					<button icon="ui-icon-search">提交</button>
+					</div>
+					</form>
+				</div>																	
+			</DIV>			
+		</DIV>	
+    </body>
+</html>

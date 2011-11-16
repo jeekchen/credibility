@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />    
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/redmond/jquery-ui.css'}">
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/ui.jqgrid.css'}">
+        
+       <!--   
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+     -->   
+        <script src="@{'/public/javascripts/jquery-1.5.2.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery-ui.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout-latest.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizeTabLayout.min-1.1.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.layout.resizePaneAccordions-1.0.js'}" type="text/javascript" charset="utf-8"></script>
+              
+        <script src="@{'/public/javascripts/grid.locale-cn.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.jqGrid.min.js'}" type="text/javascript" charset="utf-8"></script>
+        <script src="@{'/public/javascripts/jquery.dynamicFields.js'}" type="text/javascript" charset="utf-8"></script>
+     	  <script src="@{'/public/javascripts/jquery.twoColumnGrid.js'}" type="text/javascript" charset="utf-8"></script>
+  	  <script src="@{'/public/javascripts/jquery.form.js'}" type="text/javascript" charset="utf-8"></script>
+         
+        <SCRIPT type="text/javascript">
+        function loadIframePage (pane, $Pane) {
+			if (!$Pane) $Pane = $('.tab-layout-'+ pane);
+			var $Iframe = $Pane.attr('tagName')=='IFRAME' ? $Pane : $Pane.find('IFRAME:first');
+			if (!$Iframe.length) return; // no iframe
+			var src  = $Iframe.attr('src'),	page = $Iframe.attr('longdesc');
+			if (page && src != page) $Iframe.attr('src',page);
+		}
+		
+		var pageLayoutOptions = {			
+			name:					'pageLayout', // only for debugging
+			resizeWithWindowDelay:	250,        	// delay calling resizeAll when window is *still* resizing
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			south__size:			400,
+			south__paneSelector:	".ui-layout-south",
+			center__paneSelector:	".ui-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-n-s"></div>',
+			south__spacing_open:	10
+		}
+		
+		var detailLayoutOptions = {
+			name:					'detailLayout', // only for debugging			
+			closable:				false,
+			resizerDragOpacity:		0.5,
+			east__paneSelector:		".detail-layout-east",
+			center__paneSelector:	".detail-layout-center",
+			togglerContent_open:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			togglerContent_closed:	'<div class="ui-icon ui-icon-arrow-2-e-w"></div>',
+			east__minSize:			300,
+			center__minWidth:		300,
+			spacing_open:			10
+		}; 
+				
+		var mydata = [ {id:"1",invdate:"2007-10-01",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"2",invdate:"2007-10-02",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"3",invdate:"2007-09-01",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"}, {id:"4",invdate:"2007-10-04",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"5",invdate:"2007-10-05",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"6",invdate:"2007-09-06",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"}, {id:"7",invdate:"2007-10-04",name:"test",note:"note",amount:"200.00",tax:"10.00",total:"210.00"}, {id:"8",invdate:"2007-10-03",name:"test2",note:"note2",amount:"300.00",tax:"20.00",total:"320.00"}, {id:"9",invdate:"2007-09-01",name:"test3",note:"note3",amount:"400.00",tax:"30.00",total:"430.00"} ];
+		
+		function subscribeResponse(data) {
+			  alert(data.message); 
+			  var selrow = $("#serviceGrid").getGridParam("selrow");
+			  $("#serviceGrid").setSelection(selrow); 
+		}
+		
+		function pushResponse(data) {
+			  alert(data.message); 
+		}
+				
+	    $(document).ready(function () {
+	    	var pageLayout = $("body").layout( pageLayoutOptions ); 
+				
+			var detailLayout = pageLayout.panes.south				
+				.layout( detailLayoutOptions );
+			
+			detailLayout.panes.center.tabs({
+				collapsible:false,
+				show: $.layout.callbacks.resizeTabLayout
+			});
+			
+			detailLayout.panes.east.accordion({ 
+				header: "h3", fillSpace:true, autoHeight: true 
+			});
+			
+			//var grid = pageLayout.panes.center
+			$("#serviceGrid").jqGrid({ 
+				url:'@{Admin.queryService(serviceModelId)}', 
+				datatype: "json",
+				autowidth: true, 
+				autoheight: true, 
+				viewrecords: true,
+				sortname: "_created",
+				sortorder: "desc",
+				forceFit : true,
+				rownumbers: true,
+				jsonReader: { repeatitems : false, userdata : 'rows' },
+				colNames:[
+					#{list items:fields, as:'field'}
+					'${field.label}',
+					#{/list}
+					'创建时间'
+				], 
+				colModel:[ 
+				#{list items:fields, as:'field'}
+					{name:'${field.name}',index:'${field.name}'}, 
+				#{/list}			
+					{name:'_created', index:'_created', width:80}
+				],
+				rowNum:10, 
+				rowList:[10,20,50], 
+				pager: '#serviceGridPager',
+				onSelectRow: function(id){ 
+					var data = $("#serviceGrid").getGridParam('userData')[id - 1];
+						
+		      			$("#serviceDetail").twoColumnGrid(data.model.serviceForm.fields, data); 
+		      				   
+		      		       var fields = [{label:'名称',name:'name'},{label:'联系人',name:'linkName'},
+			      		      {label:'职位',name:'linkTitle'},{label:'电话',name:'telNum'},
+			      		      {label:'传真',name:'fax'},
+			      			{label:'地区',name:'area'},{label:'行业',name:'trade'},      
+			      		      {label:'地址',name:'address'},
+			      		      {label:'网址',name:'url'},{label:'邮箱',name:'email'},
+			      			{label:'简介',name:'desc'}  
+			      		];
+			      		if ( typeof(data.provider.trade) == "object" )
+			      			data.provider.trade = data.provider.trade.name;
+			      		if ( typeof(data.provider.area) == "object" )		
+			      			data.provider.area = data.provider.area.name;				      			
+			      		 $("#providerDetail").twoColumnGrid(fields, data.provider);  
+			      	
+			      		$("#subscriptionFormSubmitDiv").hide();
+			      		$("#subscriptionDetail").html('<div class="ui-loading">查询订阅状态中...</div>');
+		      			$.getJSON("@{Admin.getSubscription}?serviceModelId=${serviceModelId}&providerId="+data.providerId, function(result){
+		      				if (!result._created){
+		      					$("#subscriptionFormSubmitDiv").show();
+		      					var subscribeField = data.model.subscribeForm.fields;
+		      					subscribeField = subscribeField.concat({label:'到期时间',name:'overTime', type:'string'});
+		      					$("#subscriptionDetail").dynamicFields(subscribeField);
+		      				}else{
+		      					if (result.message){
+		      						alert(result.message);
+		      					}else{
+		      						var subscribeField = data.model.subscribeForm.fields;
+		      						subscribeField = subscribeField.concat({label:'订阅时间',name:'_created'},{label:'过期时间',name:'overTime'});
+		      					 	$("#subscriptionDetail").twoColumnGrid(subscribeField, result); 
+		      				}
+		      			}							
+					});		      
+		      	
+			      	 	$("#serviceId").val(data._id);
+			      		$("#providerId").val(data.providerId); 	 	
+			      		$("#smsContent").val(data.smsContent); 
+			      		$("#emailContent").val(data.emailContent); 	  	  			
+	   				}
+				});			
+			
+			var ajaxFormOptions = { 
+				 dataType:  'json', 
+			        success:   subscribeResponse    
+			}; 
+			
+			var pushAjaxFormOptions = { 
+				 dataType:  'json', 
+			        success:   pushResponse    
+			}; 
+			    
+			$('#subscriptionForm').ajaxForm(ajaxFormOptions); 
+			$('#pushSmsForm').ajaxForm(pushAjaxFormOptions);
+			$('#pushEmailForm').ajaxForm(pushAjaxFormOptions);
+							
+		})
+    </SCRIPT>
+        
+        <style type="text/css">		
+			.ui-layout-center{
+				line-height:1.4em;
+				margin:15px;
+				padding:0px;
+			}	
+			
+			.ui-layout-south{
+				padding:5px;
+				font-size:12px;
+			}		
+			
+			#tabs{padding:0;height:100%;}
+			
+			.ui-tabs .ui-tabs-nav li{
+			}
+			
+			#tabpanels .tab-panel { /* tab-layout containers */
+				width:		100%;
+				height:		100%;
+				padding:	0;
+				overflow:	hidden;
+			}
+						
+			.content-space{
+				margin-bottom:10px;
+			}
+			
+			.ui-loading { padding-left:18px; background: white url('/public/images/ui-anim_basic_16x16.gif') left center no-repeat; }
+		</style>
+    </head>
+    <body>  
+    	
+    	<div  class="ui-layout-center">  	
+	    	<table id="serviceGrid"></table>
+	    	<div id="serviceGridPager"></div>
+		</div>
+		<!--
+		<table id="serviceGrid" class="ui-layout-center"></table>
+		-->
+		<DIV class="ui-layout-south">					
+	        <DIV class="detail-layout-center">
+	        	<ul class="ui-state-default" sytle="height:50px" id="tabbuttons">		         
+			         <li><a href="#service-tabs-detail">服务详情</a></li>
+			         <li><a href="#provider-tabs-detail">供应商信息</a></li>        
+			         <li><a href="#subscription-tabs-detail">服务订阅</a></li> 	          
+		     	</ul>
+		     	<div id="tabpanels">
+				     <div id="service-tabs-detail" class="tab-panel">
+				     		<table id="serviceDetail" border="0"></table> 				     
+				 	</div>
+				     <div id="provider-tabs-detail" class="tab-panel">
+				     		<table id="providerDetail" border="0"></table> 	
+					</div>
+				     <div id="subscription-tabs-detail" class="tab-panel">
+				     	<form method="post" id="subscriptionForm" action="@{Admin.subscription}">
+				     	<input type="hidden" name="serviceModelId" value="${serviceModelId}"/> 
+				    	<input type="hidden" name="serviceId" id="serviceId" value=""/> 
+				    	<input type="hidden" name="providerId" id="providerId" value=""/> 		
+					<div  id="subscriptionDetail" style="display:block;overflow:hidden">
+					</div>
+					<div style="display:none;overflow:hidden" id="subscriptionFormSubmitDiv">
+					<div class="content-space"><button icon="ui-icon-search">提&nbsp;&nbsp;交</button><button icon="ui-icon-refresh">重&nbsp;&nbsp;置</button></div>
+					</div>
+					</form>	
+					 </div>
+				 </div>
+			</DIV>
+			<DIV class="detail-layout-east ui-widget accordion">		
+				<h3><a href="#">短信推送</a></h3>
+				<div>
+					<form method="post" id="pushSmsForm" action="@{Admin.pushSms()}" target="service-center">
+					<div class="content-space">
+						<textarea id="smsContent" rows="16" cols="30"></textarea>
+					</div>					
+					<div class="content-space">
+					<button icon="ui-icon-search">推送</button>
+					</div>
+					</form>
+				</div>			
+				<h3><a href="#">邮件推送</a></h3>
+				<div>
+					<form method="post" id="pushEmailForm"  action="@{Admin.pushEmail()}" target="service-center">
+					<div class="content-space">
+						<textarea id="emailContent" rows="16" cols="30"></textarea>
+					</div>					
+					<div class="content-space">
+					<button icon="ui-icon-search">推送</button>
+					</div>
+					</form>
+				</div>												
+			</DIV>			
+		</DIV>	
+    </body>
+</html>

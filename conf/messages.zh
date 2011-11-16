@@ -1,0 +1,84 @@
+# ~~~~~~
+# 定义CRUD消息
+# ~~~~~~
+
+crud.title=BDA服务推送平台
+crud.home=首页
+crud.blank=新建
+crud.nav.title=导航菜单
+crud.index.title=请选择一个对象进行编辑
+crud.index.objectType=对象类型
+crud.index.action=
+crud.index.add=添加
+crud.add=添加 &{%s}
+crud.list.title=&{%s}
+crud.list.size=%d &{%s}
+crud.list.totalSize=共 %d 条 
+crud.pagination.previous=上页
+crud.pagination.next=下页
+crud.pagination.last=末页
+crud.pagination.first=首页
+crud.show.title=编辑 &{%s}
+crud.save=保存
+crud.saveAndContinue=保存并且继续编辑
+crud.cancel=取消
+crud.hasErrors=请修正错误
+crud.blank.title=添加 &{%s}
+crud.saveAndAddAnother=保存并且创建一个新的
+crud.delete=删除 &{%s}
+crud.created=&{%s} 已经创建
+crud.saved=&{%s} 已经保存
+crud.deleted=&{%s} 已经删除
+crud.delete.error=不能删除对象
+crud.search=搜索
+crud.none=(无)
+crud.selectValue=(请选择一个值)
+
+crud.help.required=必填.
+crud.help.minlength=最小长度是 %d 位.
+crud.help.maxlength=最大长度是 %d 位.
+crud.help.email=无效的邮件地址.
+crud.help.dateformat=YYYY-MM-DD 格式.
+crud.help.numeric=数值.
+crud.help.min=必须比 %d 大.
+crud.help.future=In the future.
+crud.help.past=In the past.
+crud.help.after=在 %s 后.
+crud.help.before=在 %s 前.
+crud.help.range=在 %d 和 %d 之间
+
+# ~~~~~~
+# 定义secure消息
+# ~~~~~~
+secure.title=BDA服务推送平台用户登录
+secure.username=用户名
+secure.password=密码
+secure.remember=记住我
+secure.signin=登录
+secure.error=很抱歉，用户名或者密码错误！
+secure.logout=您已经退出登录
+
+# ~~~~~~
+# 定义后台管理对象字段消息
+# ~~~~~~
+Areas=地区管理
+Forms=表单管理
+Permissions=权限管理
+PermissionCategorys=权限分类管理
+Roles=角色管理
+Users=用户管理
+
+Area=地区
+Form=表单
+Permission=权限
+PermissionCategory=权限分类
+Role=角色
+User=用户
+
+_modified=修改时间 
+_created=创建时间 
+
+title=标题
+content=内容
+name=名称
+parent=父节点
